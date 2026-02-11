@@ -1,4 +1,4 @@
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, isToday } from 'date-fns';
 import { MODES, VALIDATION_MESSAGES, GOOGLE_ADS_COLUMNS } from './constants';
 import { hashField, isAlreadyHashed } from './hasher';
 import { tryParseDate } from './validator';
@@ -56,6 +56,13 @@ export const optimizeDate = (dateStr, defaultTimezone = '+00:00') => {
       seconds = timeMatch[3] ? parseInt(timeMatch[3]) : 0;
     }
   } else {
+    // For today's date, cap at current time (can't be in the future)
+    if (isToday(parsed)) {
+      const now = new Date();
+      hours = now.getHours();
+      minutes = now.getMinutes();
+      seconds = now.getSeconds();
+    }
     changes.push(VALIDATION_MESSAGES.info.timeAdded);
   }
 

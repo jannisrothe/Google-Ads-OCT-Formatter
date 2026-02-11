@@ -97,7 +97,7 @@ export const VALIDATION_MESSAGES = {
   info: {
     dateReformatted: 'Date reformatted to Google Ads format',
     timezoneApplied: 'Default timezone applied',
-    timeAdded: 'Default time (23:59:59) added',
+    timeAdded: 'Default time added (23:59:59, or current time for today)',
     emailHashed: 'Email normalized and hashed (SHA-256)',
     phoneHashed: 'Phone normalized and hashed (SHA-256)',
     nameHashed: 'Name normalized and hashed (SHA-256)',
