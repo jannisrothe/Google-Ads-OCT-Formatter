@@ -34,10 +34,10 @@ const matchesAliases = (header, aliases) => {
 export const autoDetectColumns = (headers, mode) => {
   const mappings = {};
   
-  // Fields to detect based on mode
+  // Fields to detect based on mode (currency is handled by settings, not column mapping)
   const fieldsToDetect = mode === 'standard' 
-    ? ['gclid', 'conversionTime', 'conversionValue', 'currency']
-    : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue', 'currency'];
+    ? ['gclid', 'conversionTime', 'conversionValue']
+    : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue'];
 
   fieldsToDetect.forEach(field => {
     const aliases = COLUMN_ALIASES[field];
@@ -58,12 +58,12 @@ export const autoDetectColumns = (headers, mode) => {
  * @returns {Array} - Array of field definitions with name, label, and required status
  */
 export const getFieldsForMode = (mode) => {
+  // Note: Currency is NOT included here - it's set via the Default Currency setting
   if (mode === 'standard') {
     return [
       { name: 'gclid', label: 'Google Click ID (GCLID)', required: true },
       { name: 'conversionTime', label: 'Conversion Time', required: true },
-      { name: 'conversionValue', label: 'Conversion Value', required: false },
-      { name: 'currency', label: 'Conversion Currency', required: false }
+      { name: 'conversionValue', label: 'Conversion Value', required: false }
     ];
   }
   
@@ -75,8 +75,7 @@ export const getFieldsForMode = (mode) => {
     { name: 'country', label: 'Country', required: false },
     { name: 'zip', label: 'Zip/Postal Code', required: false },
     { name: 'conversionTime', label: 'Conversion Time', required: true },
-    { name: 'conversionValue', label: 'Conversion Value', required: false },
-    { name: 'currency', label: 'Conversion Currency', required: false }
+    { name: 'conversionValue', label: 'Conversion Value', required: false }
   ];
 };
 

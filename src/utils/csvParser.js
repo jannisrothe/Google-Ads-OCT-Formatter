@@ -12,6 +12,35 @@ const isExcelFile = (filename) => {
 };
 
 /**
+ * Check if a value looks like an Excel serial date number
+ * Excel dates are typically 5-digit numbers between ~1 (1900-01-01) and ~50000+ (2037+)
+ * @param {any} value - The value to check
+ * @returns {boolean}
+ */
+const isExcelDateNumber = (value) => {
+  if (typeof value !== 'number') return false;
+  // Excel date range: 1 = 1900-01-01, ~44927 = 2023-01-01, ~47000+ = 2028+
+  return value > 1 && value < 100000 && Number.isInteger(value);
+};
+
+/**
+ * Convert Excel serial date to JavaScript Date string
+ * @param {number} serial - Excel serial date number
+ * @returns {string} - Date string in yyyy-mm-dd format
+ */
+const excelDateToString = (serial) => {
+  // Excel's epoch is December 30, 1899 (accounting for the leap year bug)
+  const excelEpoch = new Date(1899, 11, 30);
+  const date = new Date(excelEpoch.getTime() + serial * 24 * 60 * 60 * 1000);
+  
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
+};
+
+/**
  * Check if a value looks like a valid header (not empty, not a placeholder)
  * @param {any} value - The value to check
  * @returns {boolean}
@@ -108,11 +137,16 @@ const parseExcel = (file) => {
         // Filter out __EMPTY columns and clean up header names
         const validHeaders = headers.filter(h => isValidHeader(h));
         
-        // Clean the data to only include valid columns
+        // Clean the data to only include valid columns and convert Excel dates
         const cleanedData = jsonData.map(row => {
           const cleanRow = {};
           validHeaders.forEach(header => {
-            cleanRow[header] = row[header];
+            let value = row[header];
+            // Convert Excel serial dates to date strings
+            if (isExcelDateNumber(value)) {
+              value = excelDateToString(value);
+            }
+            cleanRow[header] = value;
           });
           return cleanRow;
         });

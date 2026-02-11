@@ -63,12 +63,13 @@ export const validateRow = (row, mode, settings) => {
   }
 
   // Check conversion value if present
-  if (row.conversionValue && row.conversionValue.trim() !== '') {
-    const valueIssue = validateValue(row.conversionValue, rowIndex);
+  const hasValue = row.conversionValue && String(row.conversionValue).trim() !== '';
+  if (hasValue) {
+    const valueIssue = validateValue(String(row.conversionValue), rowIndex);
     if (valueIssue) {
       issues.push(valueIssue);
     }
-  } else if (row.conversionValue === undefined || row.conversionValue.trim() === '') {
+  } else {
     issues.push({
       type: 'warning',
       message: VALIDATION_MESSAGES.warnings.missingValue,
@@ -77,9 +78,8 @@ export const validateRow = (row, mode, settings) => {
     });
   }
 
-  // Check currency if value is present but currency is missing
-  if (row.conversionValue && row.conversionValue.trim() !== '' && 
-      (!row.currency || row.currency.trim() === '') && !settings.defaultCurrency) {
+  // Warn if value exists but no default currency set in settings
+  if (hasValue && !settings.defaultCurrency) {
     issues.push({
       type: 'warning',
       message: VALIDATION_MESSAGES.warnings.missingCurrency,

@@ -85,17 +85,19 @@ export const optimizeDate = (dateStr, defaultTimezone = '+00:00') => {
 
 /**
  * Optimize a conversion value
- * @param {string} value - Original value string
+ * @param {string|number} value - Original value (string or number)
  * @returns {Object} - { value: string, changes: Array }
  */
 export const optimizeValue = (value) => {
   const changes = [];
   
-  if (!value || value.trim() === '') {
+  // Handle null/undefined
+  if (value === null || value === undefined || value === '') {
     return { value: '', changes: [] };
   }
-
-  let optimized = value.trim();
+  
+  // Convert to string if number
+  let optimized = String(value).trim();
   const original = optimized;
 
   // Remove currency symbols
@@ -163,17 +165,18 @@ export const optimizeRow = async (row, mode, settings) => {
   optimized.conversionTime = dateResult.value;
   allChanges.push(...dateResult.changes);
 
-  // Optimize value
-  if (row.conversionValue) {
+  // Optimize value (handle both string and number values from Excel)
+  if (row.conversionValue !== undefined && row.conversionValue !== null && row.conversionValue !== '') {
     const valueResult = optimizeValue(row.conversionValue);
     optimized.conversionValue = valueResult.value;
     allChanges.push(...valueResult.changes);
+  } else {
+    optimized.conversionValue = '';
   }
 
-  // Optimize currency
-  const currencyResult = optimizeCurrency(row.currency, settings.defaultCurrency);
-  optimized.currency = currencyResult.value;
-  allChanges.push(...currencyResult.changes);
+  // Set currency from settings (currency is not mapped from columns)
+  // Always use the default currency from settings
+  optimized.currency = settings.defaultCurrency ? settings.defaultCurrency.toUpperCase() : '';
 
   // EC4L specific: hash PII fields
   if (mode === MODES.EC4L) {
