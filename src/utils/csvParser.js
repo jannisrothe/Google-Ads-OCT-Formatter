@@ -1,11 +1,61 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+
+/**
+ * Check if a file is an Excel file
+ * @param {string} filename - The filename to check
+ * @returns {boolean}
+ */
+const isExcelFile = (filename) => {
+  const ext = filename.toLowerCase().split('.').pop();
+  return ['xls', 'xlsx', 'xlsm', 'xlsb'].includes(ext);
+};
+
+/**
+ * Parse an Excel file and return the data
+ * @param {File} file - The Excel file to parse
+ * @returns {Promise<{data: Array, headers: Array, errors: Array}>}
+ */
+const parseExcel = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get the first sheet
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert to JSON with headers
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        
+        // Get headers from the first row
+        const headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+        
+        resolve({
+          data: jsonData,
+          headers: headers.map(h => h.trim()),
+          errors: []
+        });
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
+  });
+};
 
 /**
  * Parse a CSV file and return the data
  * @param {File} file - The CSV file to parse
  * @returns {Promise<{data: Array, headers: Array, errors: Array}>}
  */
-export const parseCSV = (file) => {
+const parseCSVFile = (file) => {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -24,6 +74,21 @@ export const parseCSV = (file) => {
     });
   });
 };
+
+/**
+ * Parse a file (CSV or Excel) and return the data
+ * @param {File} file - The file to parse
+ * @returns {Promise<{data: Array, headers: Array, errors: Array}>}
+ */
+export const parseFile = (file) => {
+  if (isExcelFile(file.name)) {
+    return parseExcel(file);
+  }
+  return parseCSVFile(file);
+};
+
+// Keep backwards compatibility
+export const parseCSV = parseFile;
 
 /**
  * Convert data array to CSV string

@@ -6,11 +6,19 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Supported file extensions
+  const supportedExtensions = ['.csv', '.xls', '.xlsx', '.xlsm', '.xlsb'];
+  
+  const isValidFile = (filename) => {
+    const ext = filename.toLowerCase();
+    return supportedExtensions.some(e => ext.endsWith(e));
+  };
+
   const handleFile = useCallback(async (file) => {
     if (!file) return;
     
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file');
+    if (!isValidFile(file.name)) {
+      setError('Please upload a CSV or Excel file (.csv, .xls, .xlsx)');
       return;
     }
 
@@ -21,7 +29,7 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
       const result = await parseCSV(file);
       
       if (result.data.length === 0) {
-        setError('The CSV file appears to be empty');
+        setError('The file appears to be empty');
         return;
       }
 
@@ -32,7 +40,7 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
         parseErrors: result.errors
       });
     } catch (err) {
-      setError(`Error parsing CSV: ${err.message}`);
+      setError(`Error parsing file: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +72,7 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
   return (
     <div className="mb-6">
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Upload CSV File
+        Upload File
       </label>
       
       <div
@@ -81,7 +89,7 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
       >
         <input
           type="file"
-          accept=".csv"
+          accept=".csv,.xls,.xlsx,.xlsm,.xlsb"
           onChange={handleInputChange}
           disabled={disabled || isLoading}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
@@ -103,7 +111,7 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
             <p className="text-gray-600 mb-1">
               <span className="text-primary-600 font-medium">Click to upload</span> or drag and drop
             </p>
-            <p className="text-sm text-gray-500">CSV files only</p>
+            <p className="text-sm text-gray-500">CSV or Excel files (.csv, .xls, .xlsx)</p>
           </>
         )}
       </div>

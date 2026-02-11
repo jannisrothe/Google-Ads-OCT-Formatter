@@ -34,12 +34,12 @@ export const TIMEZONES = [
   { value: '-04:00', label: 'America/New_York (GMT-4 DST)' },
 ];
 
-// ISO 4217 currency codes (common ones)
+// ISO 4217 currency codes (common ones) - sorted alphabetically
 export const CURRENCIES = [
-  'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD',
-  'SEK', 'KRW', 'SGD', 'NOK', 'MXN', 'INR', 'RUB', 'ZAR', 'TRY', 'BRL',
-  'TWD', 'DKK', 'PLN', 'THB', 'IDR', 'HUF', 'CZK', 'ILS', 'CLP', 'PHP',
-  'AED', 'COP', 'SAR', 'MYR', 'RON', 'ARS', 'VND', 'EGP', 'PKR', 'NGN'
+  'AED', 'ARS', 'AUD', 'BRL', 'CAD', 'CHF', 'CLP', 'CNY', 'COP', 'CZK',
+  'DKK', 'EGP', 'EUR', 'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY',
+  'KRW', 'MXN', 'MYR', 'NGN', 'NOK', 'NZD', 'PHP', 'PKR', 'PLN', 'RON',
+  'RUB', 'SAR', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD', 'VND', 'ZAR'
 ];
 
 // Column name aliases for fuzzy matching
