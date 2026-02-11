@@ -1,0 +1,7 @@
+email,phone,first_name,last_name,country,zip,conversion_date,value,currency
+john.doe@example.com,+1-555-123-4567,John,Doe,US,10001,2025-01-15,99.99,USD
+jane.smith@gmail.com,(555) 987-6543,Jane,Smith,US,90210,2025-01-16 14:30:00,149.50,USD
+bob.wilson@company.co.uk,+44 20 7946 0958,Bob,Wilson,GB,SW1A 1AA,01/17/2025,75.00,GBP
+maria.garcia@ejemplo.es,+34 612 345 678,Maria,Garcia,ES,28001,2025-01-18,200.00,EUR
+,+1-555-000-1111,Anonymous,User,US,33101,2025-01-19,50,USD
+alex@domain.com,,Alex,Johnson,CA,M5V 2T6,2025-01-20,125.00,CAD
