@@ -13,14 +13,29 @@ const isExcelFile = (filename) => {
 
 /**
  * Check if a value looks like an Excel serial date number
- * Excel dates are typically 5-digit numbers between ~1 (1900-01-01) and ~50000+ (2037+)
+ * Excel dates are typically 5-digit numbers representing days since 1900-01-01
+ * We use a narrower range to avoid false positives with monetary values
  * @param {any} value - The value to check
  * @returns {boolean}
  */
 const isExcelDateNumber = (value) => {
   if (typeof value !== 'number') return false;
-  // Excel date range: 1 = 1900-01-01, ~44927 = 2023-01-01, ~47000+ = 2028+
-  return value > 1 && value < 100000 && Number.isInteger(value);
+  // Excel date range for reasonable dates (2020-2030): ~43831 to ~47848
+  // Using a wider range but still excluding common monetary values
+  // Dates before 2000 (~36526) or after 2050 (~54789) are unlikely
+  return value >= 36526 && value <= 54789 && Number.isInteger(value);
+};
+
+/**
+ * Check if a column header looks like a date/time column
+ * @param {string} header - The column header
+ * @returns {boolean}
+ */
+const isDateColumn = (header) => {
+  if (!header) return false;
+  const normalized = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const dateKeywords = ['date', 'time', 'timestamp', 'created', 'converted', 'datetime', 'conversion'];
+  return dateKeywords.some(keyword => normalized.includes(keyword));
 };
 
 /**
@@ -142,8 +157,9 @@ const parseExcel = (file) => {
           const cleanRow = {};
           validHeaders.forEach(header => {
             let value = row[header];
-            // Convert Excel serial dates to date strings
-            if (isExcelDateNumber(value)) {
+            // Only convert Excel serial dates for columns that look like date columns
+            // This prevents monetary values like 1919, 2070, etc. from being converted
+            if (isDateColumn(header) && isExcelDateNumber(value)) {
               value = excelDateToString(value);
             }
             cleanRow[header] = value;

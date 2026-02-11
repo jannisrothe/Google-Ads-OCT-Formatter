@@ -43,8 +43,10 @@ export const optimizeDate = (dateStr, defaultTimezone = '+00:00') => {
   // Check if original has timezone
   const hasTimezone = /[+-]\d{2}:\d{2}$/.test(trimmed) || /Z$/.test(trimmed);
 
-  // Extract time if present, otherwise default to 12:00:00
-  let hours = 12, minutes = 0, seconds = 0;
+  // Extract time if present, otherwise default to 23:59:59
+  // Using end of day ensures the conversion is after any ad click that day
+  // (conversions must happen AFTER the ad click for proper attribution)
+  let hours = 23, minutes = 59, seconds = 59;
   
   if (hasTime) {
     const timeMatch = trimmed.match(/(\d{2}):(\d{2})(?::(\d{2}))?/);
