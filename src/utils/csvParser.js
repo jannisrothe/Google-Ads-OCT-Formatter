@@ -12,6 +12,64 @@ const isExcelFile = (filename) => {
 };
 
 /**
+ * Check if a value looks like a valid header (not empty, not a placeholder)
+ * @param {any} value - The value to check
+ * @returns {boolean}
+ */
+const isValidHeader = (value) => {
+  if (value === null || value === undefined) return false;
+  const str = String(value).trim();
+  // Filter out empty values and xlsx placeholder names
+  if (!str || str.startsWith('__EMPTY')) return false;
+  return true;
+};
+
+/**
+ * Find the most likely header row in raw Excel data
+ * @param {Array<Array>} rawData - Raw data as array of arrays
+ * @returns {number} - Index of the header row (0-based)
+ */
+const findHeaderRow = (rawData) => {
+  if (!rawData || rawData.length === 0) return 0;
+  
+  // Look through the first 10 rows to find the best header candidate
+  const maxRowsToCheck = Math.min(10, rawData.length);
+  let bestRowIndex = 0;
+  let bestScore = 0;
+  
+  for (let i = 0; i < maxRowsToCheck; i++) {
+    const row = rawData[i];
+    if (!row) continue;
+    
+    // Score based on: number of non-empty cells, all cells are strings, no numbers
+    let score = 0;
+    let nonEmptyCells = 0;
+    let hasOnlyStrings = true;
+    
+    for (const cell of row) {
+      if (cell !== null && cell !== undefined && String(cell).trim() !== '') {
+        nonEmptyCells++;
+        // Headers are usually strings, not numbers
+        if (typeof cell === 'number') {
+          hasOnlyStrings = false;
+        }
+      }
+    }
+    
+    // Calculate score: more non-empty cells is better, strings-only is a bonus
+    score = nonEmptyCells * (hasOnlyStrings ? 2 : 1);
+    
+    // Prefer rows that have multiple cells filled
+    if (nonEmptyCells >= 2 && score > bestScore) {
+      bestScore = score;
+      bestRowIndex = i;
+    }
+  }
+  
+  return bestRowIndex;
+};
+
+/**
  * Parse an Excel file and return the data
  * @param {File} file - The Excel file to parse
  * @returns {Promise<{data: Array, headers: Array, errors: Array}>}
@@ -29,15 +87,43 @@ const parseExcel = (file) => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         
-        // Convert to JSON with headers
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        // First, get raw data as array of arrays to find the header row
+        const rawData = XLSX.utils.sheet_to_json(worksheet, { 
+          header: 1, // Use array of arrays
+          defval: ''
+        });
         
-        // Get headers from the first row
-        const headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+        // Find the header row
+        const headerRowIndex = findHeaderRow(rawData);
+        
+        // Convert to JSON using the detected header row
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+          defval: '',
+          range: headerRowIndex // Start from the header row
+        });
+        
+        // Get and clean headers - filter out empty/placeholder columns
+        let headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+        
+        // Filter out __EMPTY columns and clean up header names
+        const validHeaders = headers.filter(h => isValidHeader(h));
+        
+        // Clean the data to only include valid columns
+        const cleanedData = jsonData.map(row => {
+          const cleanRow = {};
+          validHeaders.forEach(header => {
+            cleanRow[header] = row[header];
+          });
+          return cleanRow;
+        });
+        
+        // Also get ALL headers (including empty) for fallback display
+        // but mark which ones are valid
+        const allHeaders = headers.map(h => String(h).trim()).filter(h => h && !h.startsWith('__EMPTY'));
         
         resolve({
-          data: jsonData,
-          headers: headers.map(h => h.trim()),
+          data: cleanedData,
+          headers: allHeaders.length > 0 ? allHeaders : validHeaders,
           errors: []
         });
       } catch (error) {
