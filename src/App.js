@@ -65,7 +65,21 @@ function App() {
       
       try {
         // Apply column mappings
-        const mapped = applyMappings(fileData.data, mappings, mode);
+        let mapped = applyMappings(fileData.data, mappings, mode);
+        
+        // Auto-remove rows with 0 or no conversion value
+        const originalCount = mapped.length;
+        mapped = mapped.filter(row => {
+          const value = row.conversionValue;
+          if (value === null || value === undefined || value === '') return false;
+          const numValue = parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+          return !isNaN(numValue) && numValue > 0;
+        });
+        
+        if (mapped.length < originalCount) {
+          console.log(`Auto-removed ${originalCount - mapped.length} rows with zero or no conversion value`);
+        }
+        
         setMappedData(mapped);
         
         // Validate
@@ -109,6 +123,24 @@ function App() {
 
   // Check if settings are valid
   const settingsValid = settings.conversionName && settings.conversionName.trim() !== '';
+
+  // Get unique row indices with errors
+  const errorRowIndices = validation 
+    ? [...new Set(validation.issues.filter(i => i.type === 'error').map(i => i.rowIndex))]
+    : [];
+
+  // Handler to remove rows with errors
+  const handleRemoveErrorRows = useCallback(() => {
+    if (!fileData || errorRowIndices.length === 0) return;
+    
+    // Filter out rows with errors (using 1-indexed rowIndex)
+    const filteredData = fileData.data.filter((_, index) => !errorRowIndices.includes(index + 1));
+    
+    setFileData({
+      ...fileData,
+      data: filteredData
+    });
+  }, [fileData, errorRowIndices]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -198,6 +230,8 @@ function App() {
           <ValidationResults 
             validation={validation} 
             optimizationSummary={optimizationSummary}
+            onRemoveErrorRows={handleRemoveErrorRows}
+            errorRowCount={errorRowIndices.length}
           />
         )}
 
