@@ -1,17 +1,31 @@
 import React, { useCallback, useState } from 'react';
 import { parseCSV } from '../utils/csvParser';
 
+// File size limits (in bytes)
+const FILE_SIZE_LIMITS = {
+  csv: 50 * 1024 * 1024,    // 50MB for CSV
+  excel: 20 * 1024 * 1024,  // 20MB for Excel
+};
+const ROW_LIMIT = 50000;
+
 const FileUpload = ({ onFileLoaded, disabled }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [warning, setWarning] = useState(null);
 
   // Supported file extensions
   const supportedExtensions = ['.csv', '.xls', '.xlsx', '.xlsm', '.xlsb'];
+  const excelExtensions = ['.xls', '.xlsx', '.xlsm', '.xlsb'];
   
   const isValidFile = (filename) => {
     const ext = filename.toLowerCase();
     return supportedExtensions.some(e => ext.endsWith(e));
+  };
+
+  const isExcelFile = (filename) => {
+    const ext = filename.toLowerCase();
+    return excelExtensions.some(e => ext.endsWith(e));
   };
 
   const handleFile = useCallback(async (file) => {
@@ -24,6 +38,16 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
 
     setIsLoading(true);
     setError(null);
+    setWarning(null);
+
+    // Check file size limits
+    const isExcel = isExcelFile(file.name);
+    const sizeLimit = isExcel ? FILE_SIZE_LIMITS.excel : FILE_SIZE_LIMITS.csv;
+    const sizeLimitMB = sizeLimit / (1024 * 1024);
+    
+    if (file.size > sizeLimit) {
+      setWarning(`Large file detected (>${sizeLimitMB}MB). Processing may be slow or fail on some devices.`);
+    }
 
     try {
       const result = await parseCSV(file);
@@ -31,6 +55,11 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
       if (result.data.length === 0) {
         setError('The file appears to be empty');
         return;
+      }
+
+      // Check row count
+      if (result.data.length > ROW_LIMIT) {
+        setWarning(`Large dataset (${result.data.length.toLocaleString()} rows). Performance may be affected. Consider splitting into smaller files.`);
       }
 
       onFileLoaded({
@@ -112,9 +141,19 @@ const FileUpload = ({ onFileLoaded, disabled }) => {
               <span className="text-primary-600 font-medium">Click to upload</span> or drag and drop
             </p>
             <p className="text-sm text-gray-500">CSV or Excel files (.csv, .xls, .xlsx)</p>
+            <p className="text-xs text-gray-400 mt-2">Recommended: up to 50,000 rows • Max ~50MB CSV / ~20MB Excel</p>
           </>
         )}
       </div>
+
+      {warning && (
+        <div className="mt-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-md p-2 flex items-start">
+          <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {warning}
+        </div>
+      )}
 
       {error && (
         <div className="mt-2 text-sm text-red-600 bg-red-50 rounded-md p-2">
