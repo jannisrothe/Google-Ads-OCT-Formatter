@@ -25,8 +25,8 @@ export const optimizeDate = (dateStr, defaultTimezone = '+00:00') => {
 
   const trimmed = dateStr.trim();
   
-  // Check if already in correct format
-  const correctFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
+  // Check if already in correct format (with T separator)
+  const correctFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
   if (correctFormat.test(trimmed)) {
     return { value: trimmed, changes: [] };
   }
@@ -83,7 +83,7 @@ export const optimizeDate = (dateStr, defaultTimezone = '+00:00') => {
     changes.push(VALIDATION_MESSAGES.info.timezoneApplied);
   }
 
-  const formatted = `${datePart} ${timePart}${timezone}`;
+  const formatted = `${datePart}T${timePart}${timezone}`;
   
   if (formatted !== trimmed) {
     changes.push(VALIDATION_MESSAGES.info.dateReformatted);
