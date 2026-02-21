@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const DataPreview = ({ data, mode, validation, maxRows = 10 }) => {
   const [showAll, setShowAll] = useState(false);
-  
+
   if (!data || data.length === 0) return null;
 
   // Get columns to display based on mode
@@ -36,15 +36,15 @@ const DataPreview = ({ data, mode, validation, maxRows = 10 }) => {
 
   const getCellClass = (rowIndex, field) => {
     const issue = issueMap[`${rowIndex}-${field}`];
-    if (!issue) return '';
-    
+    if (!issue) return 'text-black';
+
     switch (issue.type) {
       case 'error':
-        return 'bg-red-100 text-red-900';
+        return 'bg-red-100 text-red-900 border border-red-400';
       case 'warning':
-        return 'bg-yellow-100 text-yellow-900';
+        return 'bg-yellow-100 text-yellow-900 border border-yellow-400';
       default:
-        return '';
+        return 'text-black';
     }
   };
 
@@ -53,7 +53,7 @@ const DataPreview = ({ data, mode, validation, maxRows = 10 }) => {
 
   // Truncate long values for display
   const truncate = (value, maxLength = 40) => {
-    if (!value) return '-';
+    if (!value) return '—';
     const str = String(value);
     if (str.length <= maxLength) return str;
     return str.substring(0, maxLength) + '...';
@@ -61,35 +61,35 @@ const DataPreview = ({ data, mode, validation, maxRows = 10 }) => {
 
   return (
     <div className="mb-6">
-      <h3 className="font-medium text-gray-900 mb-3">
-        Data Preview ({data.length} rows)
-      </h3>
-      
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex items-center gap-3 mb-2">
+        <span className="text-sm font-bold text-gray-600">{data.length} rows</span>
+      </div>
+
+      <div className="border-2 border-black shadow-brutal overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full">
+            <thead className="bg-black">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-black text-white uppercase tracking-wider">
                   #
                 </th>
                 {columns.map(col => (
-                  <th key={col} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th key={col} className="px-3 py-2 text-left text-xs font-black text-white uppercase tracking-wider">
                     {columnLabels[col] || col}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y-2 divide-black">
               {displayData.map((row, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 text-sm text-gray-500">
+                  <td className="px-3 py-2 text-sm font-bold text-gray-500">
                     {row._rowIndex || idx + 1}
                   </td>
                   {columns.map(col => (
-                    <td 
-                      key={col} 
-                      className={`px-3 py-2 text-sm ${getCellClass(row._rowIndex || idx + 1, col)}`}
+                    <td
+                      key={col}
+                      className={`px-3 py-2 text-sm font-medium ${getCellClass(row._rowIndex || idx + 1, col)}`}
                       title={row[col] || ''}
                     >
                       {truncate(row[col])}
@@ -100,12 +100,12 @@ const DataPreview = ({ data, mode, validation, maxRows = 10 }) => {
             </tbody>
           </table>
         </div>
-        
+
         {hasMore && (
-          <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+          <div className="bg-[#f5f0e8] px-4 py-3 border-t-2 border-black">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+              className="text-sm font-bold text-black underline hover:no-underline"
             >
               {showAll ? 'Show less' : `Show all ${data.length} rows`}
             </button>

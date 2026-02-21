@@ -8,9 +8,9 @@ const ValidationResults = ({ validation, optimizationSummary, onRemoveErrorRows,
   // Group issues by type
   const errors = issues.filter(i => i.type === 'error');
   const warnings = issues.filter(i => i.type === 'warning');
-  
+
   // Convert optimization summary to info items
-  const infoItems = optimizationSummary 
+  const infoItems = optimizationSummary
     ? Object.entries(optimizationSummary).map(([message, count]) => ({
         message,
         count
@@ -21,60 +21,66 @@ const ValidationResults = ({ validation, optimizationSummary, onRemoveErrorRows,
     <div className="mb-6 space-y-4">
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-2xl font-bold text-gray-900">{summary.total}</div>
-          <div className="text-sm text-gray-500">Total Rows</div>
+        <div className="bg-white border-2 border-black shadow-brutal p-4">
+          <div className="text-3xl font-black text-black">{summary.total}</div>
+          <div className="text-xs font-bold uppercase tracking-wider text-gray-500 mt-1">Total Rows</div>
         </div>
-        
-        <div className={`rounded-lg p-4 ${summary.errors > 0 ? 'bg-red-50 border border-red-200' : 'bg-white border border-gray-200'}`}>
-          <div className={`text-2xl font-bold ${summary.errors > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+
+        <div className={`border-2 border-black shadow-brutal p-4 ${summary.errors > 0 ? 'bg-red-100' : 'bg-white'}`}>
+          <div className={`text-3xl font-black ${summary.errors > 0 ? 'text-red-700' : 'text-black'}`}>
             {summary.errors}
           </div>
-          <div className={`text-sm ${summary.errors > 0 ? 'text-red-500' : 'text-gray-500'}`}>Errors</div>
+          <div className={`text-xs font-bold uppercase tracking-wider mt-1 ${summary.errors > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+            Errors
+          </div>
         </div>
-        
-        <div className={`rounded-lg p-4 ${summary.warnings > 0 ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-200'}`}>
-          <div className={`text-2xl font-bold ${summary.warnings > 0 ? 'text-yellow-600' : 'text-gray-900'}`}>
+
+        <div className={`border-2 border-black shadow-brutal p-4 ${summary.warnings > 0 ? 'bg-yellow-100' : 'bg-white'}`}>
+          <div className={`text-3xl font-black ${summary.warnings > 0 ? 'text-yellow-700' : 'text-black'}`}>
             {summary.warnings}
           </div>
-          <div className={`text-sm ${summary.warnings > 0 ? 'text-yellow-500' : 'text-gray-500'}`}>Warnings</div>
+          <div className={`text-xs font-bold uppercase tracking-wider mt-1 ${summary.warnings > 0 ? 'text-yellow-600' : 'text-gray-500'}`}>
+            Warnings
+          </div>
         </div>
-        
-        <div className={`rounded-lg p-4 ${infoItems.length > 0 ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-gray-200'}`}>
-          <div className={`text-2xl font-bold ${infoItems.length > 0 ? 'text-blue-600' : 'text-gray-900'}`}>
+
+        <div className={`border-2 border-black shadow-brutal p-4 ${infoItems.length > 0 ? 'bg-blue-100' : 'bg-white'}`}>
+          <div className={`text-3xl font-black ${infoItems.length > 0 ? 'text-blue-700' : 'text-black'}`}>
             {infoItems.length}
           </div>
-          <div className={`text-sm ${infoItems.length > 0 ? 'text-blue-500' : 'text-gray-500'}`}>Auto-fixes</div>
+          <div className={`text-xs font-bold uppercase tracking-wider mt-1 ${infoItems.length > 0 ? 'text-blue-600' : 'text-gray-500'}`}>
+            Auto-fixes
+          </div>
         </div>
       </div>
 
       {/* Errors List */}
       {errors.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border-2 border-black border-l-4 border-l-red-600 p-4">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-red-800 flex items-center">
+            <h4 className="font-black text-red-800 flex items-center text-sm">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              Errors (must fix before export)
+              Errors — must fix before export
             </h4>
             {onRemoveErrorRows && errorRowCount > 0 && (
               <button
                 onClick={onRemoveErrorRows}
-                className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                className="px-3 py-1 text-sm font-bold bg-red-600 text-white border-2 border-black shadow-brutal-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
               >
                 Remove {errorRowCount} error row{errorRowCount !== 1 ? 's' : ''}
               </button>
             )}
           </div>
-          <ul className="space-y-1 text-sm text-red-700">
+          <ul className="space-y-1 text-sm text-red-800 font-medium">
             {errors.slice(0, 10).map((error, idx) => (
               <li key={idx}>
                 Row {error.rowIndex}: {error.message}
               </li>
             ))}
             {errors.length > 10 && (
-              <li className="font-medium">...and {errors.length - 10} more errors</li>
+              <li className="font-black">...and {errors.length - 10} more errors</li>
             )}
           </ul>
         </div>
@@ -82,21 +88,21 @@ const ValidationResults = ({ validation, optimizationSummary, onRemoveErrorRows,
 
       {/* Warnings List */}
       {warnings.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
+        <div className="bg-yellow-50 border-2 border-black border-l-4 border-l-yellow-500 p-4">
+          <h4 className="font-black text-yellow-800 mb-2 flex items-center text-sm">
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            Warnings (export allowed)
+            Warnings — export allowed
           </h4>
-          <ul className="space-y-1 text-sm text-yellow-700">
+          <ul className="space-y-1 text-sm text-yellow-800 font-medium">
             {warnings.slice(0, 10).map((warning, idx) => (
               <li key={idx}>
                 Row {warning.rowIndex}: {warning.message}
               </li>
             ))}
             {warnings.length > 10 && (
-              <li className="font-medium">...and {warnings.length - 10} more warnings</li>
+              <li className="font-black">...and {warnings.length - 10} more warnings</li>
             )}
           </ul>
         </div>
@@ -104,14 +110,14 @@ const ValidationResults = ({ validation, optimizationSummary, onRemoveErrorRows,
 
       {/* Info / Auto-fixes List */}
       {infoItems.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-800 mb-2 flex items-center">
+        <div className="bg-blue-50 border-2 border-black border-l-4 border-l-blue-500 p-4">
+          <h4 className="font-black text-blue-800 mb-2 flex items-center text-sm">
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             Auto-fixes Applied
           </h4>
-          <ul className="space-y-1 text-sm text-blue-700">
+          <ul className="space-y-1 text-sm text-blue-800 font-medium">
             {infoItems.map((item, idx) => (
               <li key={idx}>
                 {item.message} ({item.count} rows)
@@ -123,8 +129,8 @@ const ValidationResults = ({ validation, optimizationSummary, onRemoveErrorRows,
 
       {/* Success message */}
       {summary.errors === 0 && summary.warnings === 0 && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-medium text-green-800 flex items-center">
+        <div className="bg-green-50 border-2 border-black border-l-4 border-l-green-500 p-4">
+          <h4 className="font-black text-green-800 flex items-center text-sm">
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
