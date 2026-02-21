@@ -35,9 +35,11 @@ export const autoDetectColumns = (headers, mode) => {
   const mappings = {};
   
   // Fields to detect based on mode (currency is handled by settings, not column mapping)
-  const fieldsToDetect = mode === 'standard' 
+  const fieldsToDetect = mode === 'standard'
     ? ['gclid', 'conversionTime', 'conversionValue']
-    : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue'];
+    : mode === 'facebook'
+      ? ['email', 'phone', 'firstName', 'lastName', 'city', 'state', 'country', 'zip', 'conversionTime', 'conversionValue']
+      : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue'];
 
   fieldsToDetect.forEach(field => {
     const aliases = COLUMN_ALIASES[field];
@@ -66,7 +68,22 @@ export const getFieldsForMode = (mode) => {
       { name: 'conversionValue', label: 'Conversion Value', required: false }
     ];
   }
-  
+
+  if (mode === 'facebook') {
+    return [
+      { name: 'email', label: 'Email', required: false, note: 'At least Email or Phone required' },
+      { name: 'phone', label: 'Phone', required: false, note: 'At least Email or Phone required' },
+      { name: 'firstName', label: 'First Name', required: false },
+      { name: 'lastName', label: 'Last Name', required: false },
+      { name: 'city', label: 'City', required: false },
+      { name: 'state', label: 'State / Region', required: false },
+      { name: 'country', label: 'Country', required: false },
+      { name: 'zip', label: 'Zip/Postal Code', required: false },
+      { name: 'conversionTime', label: 'Event Time', required: true },
+      { name: 'conversionValue', label: 'Value (required for Facebook)', required: true }
+    ];
+  }
+
   return [
     { name: 'email', label: 'Email', required: false, note: 'At least Email or Phone required' },
     { name: 'phone', label: 'Phone', required: false, note: 'At least Email or Phone required' },

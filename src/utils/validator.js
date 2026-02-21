@@ -35,11 +35,24 @@ export const validateRow = (row, mode, settings) => {
     // At least email or phone is required
     const hasEmail = row.email && row.email.trim() !== '';
     const hasPhone = row.phone && row.phone.trim() !== '';
-    
+
     if (!hasEmail && !hasPhone) {
       issues.push({
         type: 'error',
         message: VALIDATION_MESSAGES.errors.missingEmailOrPhone,
+        rowIndex,
+        field: 'email'
+      });
+    }
+  } else if (mode === MODES.FACEBOOK) {
+    // At least email or phone is required
+    const hasEmail = row.email && row.email.trim() !== '';
+    const hasPhone = row.phone && row.phone.trim() !== '';
+
+    if (!hasEmail && !hasPhone) {
+      issues.push({
+        type: 'error',
+        message: VALIDATION_MESSAGES.errors.missingEmailOrPhoneFacebook,
         rowIndex,
         field: 'email'
       });
@@ -64,28 +77,49 @@ export const validateRow = (row, mode, settings) => {
 
   // Check conversion value if present
   const hasValue = row.conversionValue && String(row.conversionValue).trim() !== '';
-  if (hasValue) {
-    const valueIssue = validateValue(String(row.conversionValue), rowIndex);
-    if (valueIssue) {
-      issues.push(valueIssue);
+
+  if (mode === MODES.FACEBOOK) {
+    // Value and currency are required (errors) for Facebook
+    if (!hasValue) {
+      issues.push({
+        type: 'error',
+        message: VALIDATION_MESSAGES.errors.missingValueFacebook,
+        rowIndex,
+        field: 'conversionValue'
+      });
+    } else {
+      const valueIssue = validateValue(String(row.conversionValue), rowIndex);
+      if (valueIssue) issues.push(valueIssue);
+    }
+    if (!settings.defaultCurrency) {
+      issues.push({
+        type: 'error',
+        message: VALIDATION_MESSAGES.errors.missingCurrencyFacebook,
+        rowIndex,
+        field: 'currency'
+      });
     }
   } else {
-    issues.push({
-      type: 'warning',
-      message: VALIDATION_MESSAGES.warnings.missingValue,
-      rowIndex,
-      field: 'conversionValue'
-    });
-  }
-
-  // Warn if value exists but no default currency set in settings
-  if (hasValue && !settings.defaultCurrency) {
-    issues.push({
-      type: 'warning',
-      message: VALIDATION_MESSAGES.warnings.missingCurrency,
-      rowIndex,
-      field: 'currency'
-    });
+    // Google modes: value and currency are warnings
+    if (hasValue) {
+      const valueIssue = validateValue(String(row.conversionValue), rowIndex);
+      if (valueIssue) issues.push(valueIssue);
+    } else {
+      issues.push({
+        type: 'warning',
+        message: VALIDATION_MESSAGES.warnings.missingValue,
+        rowIndex,
+        field: 'conversionValue'
+      });
+    }
+    if (hasValue && !settings.defaultCurrency) {
+      issues.push({
+        type: 'warning',
+        message: VALIDATION_MESSAGES.warnings.missingCurrency,
+        rowIndex,
+        field: 'currency'
+      });
+    }
   }
 
   return issues;
@@ -114,13 +148,15 @@ const validateDate = (dateStr, rowIndex, mode) => {
   // Check conversion window
   const now = new Date();
   const daysDiff = differenceInDays(now, parsed);
-  const maxDays = mode === MODES.STANDARD ? CONVERSION_WINDOWS.standard : CONVERSION_WINDOWS.ec4l;
+  const maxDays = mode === MODES.STANDARD ? CONVERSION_WINDOWS.standard
+    : mode === MODES.FACEBOOK ? CONVERSION_WINDOWS.facebook
+    : CONVERSION_WINDOWS.ec4l;
 
   if (daysDiff > maxDays) {
     return {
       type: 'warning',
-      message: mode === MODES.STANDARD 
-        ? VALIDATION_MESSAGES.warnings.gclidTooOld 
+      message: mode === MODES.STANDARD ? VALIDATION_MESSAGES.warnings.gclidTooOld
+        : mode === MODES.FACEBOOK ? VALIDATION_MESSAGES.warnings.facebookTooOld
         : VALIDATION_MESSAGES.warnings.ec4lTooOld,
       rowIndex,
       field: 'conversionTime'

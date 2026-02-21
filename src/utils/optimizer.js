@@ -159,9 +159,22 @@ export const optimizeCurrency = (currency, defaultCurrency = '') => {
 };
 
 /**
+ * Convert a date string to Unix timestamp (seconds) for Facebook
+ * @param {string} dateStr - Original date string
+ * @returns {Object} - { value: string, changes: Array }
+ */
+export const optimizeDateToUnix = (dateStr) => {
+  if (!dateStr || dateStr.trim() === '') return { value: '', changes: [] };
+  const parsed = tryParseDate(dateStr.trim());
+  if (!parsed || !isValid(parsed)) return { value: dateStr, changes: [] };
+  const unix = Math.floor(parsed.getTime() / 1000).toString();
+  return { value: unix, changes: [VALIDATION_MESSAGES.info.unixTimestampConverted] };
+};
+
+/**
  * Optimize a single row of data
  * @param {Object} row - Row data with standardized field names
- * @param {string} mode - 'standard' or 'ec4l'
+ * @param {string} mode - 'standard' or 'ec4l' or 'facebook'
  * @param {Object} settings - User settings
  * @returns {Promise<OptimizationResult>}
  */
@@ -169,8 +182,10 @@ export const optimizeRow = async (row, mode, settings) => {
   const optimized = { ...row };
   const allChanges = [];
 
-  // Optimize date
-  const dateResult = optimizeDate(row.conversionTime, settings.timezone);
+  // Optimize date: Unix timestamp for Facebook, Google format otherwise
+  const dateResult = mode === MODES.FACEBOOK
+    ? optimizeDateToUnix(row.conversionTime)
+    : optimizeDate(row.conversionTime, settings.timezone);
   optimized.conversionTime = dateResult.value;
   allChanges.push(...dateResult.changes);
 
@@ -223,6 +238,39 @@ export const optimizeRow = async (row, mode, settings) => {
     }
   }
 
+  // Facebook specific: hash PII and address fields
+  if (mode === MODES.FACEBOOK) {
+    if (row.email && !isAlreadyHashed(row.email)) {
+      optimized.email = await hashField(row.email, 'email');
+      allChanges.push(VALIDATION_MESSAGES.info.emailHashed);
+    }
+    if (row.phone && !isAlreadyHashed(row.phone)) {
+      optimized.phone = await hashField(row.phone, 'phone');
+      allChanges.push(VALIDATION_MESSAGES.info.phoneHashed);
+    }
+    if (row.firstName && !isAlreadyHashed(row.firstName)) {
+      optimized.firstName = await hashField(row.firstName, 'firstName');
+      allChanges.push(VALIDATION_MESSAGES.info.nameHashed);
+    }
+    if (row.lastName && !isAlreadyHashed(row.lastName)) {
+      optimized.lastName = await hashField(row.lastName, 'lastName');
+      if (!row.firstName || isAlreadyHashed(row.firstName)) {
+        allChanges.push(VALIDATION_MESSAGES.info.nameHashed);
+      }
+    }
+    // Hash address fields (Facebook hashes these, unlike Google EC4L)
+    let addressHashed = false;
+    for (const f of ['city', 'state', 'country', 'zip']) {
+      if (row[f] && !isAlreadyHashed(row[f])) {
+        optimized[f] = await hashField(row[f], f);
+        addressHashed = true;
+      }
+    }
+    if (addressHashed) {
+      allChanges.push(VALIDATION_MESSAGES.info.addressHashed);
+    }
+  }
+
   return {
     data: optimized,
     changes: [...new Set(allChanges)] // Remove duplicates
@@ -259,13 +307,32 @@ export const optimizeAll = async (data, mode, settings) => {
 };
 
 /**
- * Transform optimized data to Google Ads export format
+ * Transform optimized data to export format
  * @param {Array} data - Optimized row data
- * @param {string} mode - 'standard' or 'ec4l'
- * @param {string} conversionName - User-provided conversion name
- * @returns {Array} - Data formatted for Google Ads CSV export
+ * @param {string} mode - 'standard', 'ec4l', or 'facebook'
+ * @param {string} conversionName - User-provided conversion/event name
+ * @param {Object} settings - User settings (used for Facebook eventName, dataProcessingOptions)
+ * @returns {Array} - Data formatted for CSV export
  */
-export const transformToGoogleAdsFormat = (data, mode, conversionName) => {
+export const transformToGoogleAdsFormat = (data, mode, conversionName, settings = {}) => {
+  if (mode === MODES.FACEBOOK) {
+    return data.map(row => ({
+      'email': row.email || '',
+      'phone': row.phone || '',
+      'fn': row.firstName || '',
+      'ln': row.lastName || '',
+      'ct': row.city || '',
+      'st': row.state || '',
+      'country': row.country || '',
+      'zip': row.zip || '',
+      'event_name': settings.eventName || '',
+      'event_time': row.conversionTime || '',
+      'value': row.conversionValue || '',
+      'currency': row.currency || '',
+      'data_processing_options': settings.dataProcessingOptions || 'non-ldu'
+    }));
+  }
+
   return data.map(row => {
     if (mode === MODES.STANDARD) {
       return {

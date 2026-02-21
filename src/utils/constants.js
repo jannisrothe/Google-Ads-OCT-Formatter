@@ -1,7 +1,8 @@
 // Upload modes
 export const MODES = {
   STANDARD: 'standard',
-  EC4L: 'ec4l'
+  EC4L: 'ec4l',
+  FACEBOOK: 'facebook'
 };
 
 // Common timezones with UTC offsets
@@ -53,7 +54,9 @@ export const COLUMN_ALIASES = {
   conversionValue: ['value', 'revenue', 'amount', 'total', 'conversion_value', 'order_value', 'price', 'sale_amount'],
   currency: ['currency', 'curr', 'currency_code', 'currencycode', 'cur'],
   country: ['country', 'country_code', 'countrycode', 'nation'],
-  zip: ['zip', 'zipcode', 'zip_code', 'postal_code', 'postalcode', 'postcode', 'postal']
+  zip: ['zip', 'zipcode', 'zip_code', 'postal_code', 'postalcode', 'postcode', 'postal'],
+  city: ['city', 'town', 'locality'],
+  state: ['state', 'region', 'province', 'county']
 };
 
 // Google Ads output column names
@@ -76,6 +79,21 @@ export const GOOGLE_ADS_COLUMNS = {
     'Conversion Time',
     'Conversion Value',
     'Conversion Currency'
+  ],
+  facebook: [
+    'email',
+    'phone',
+    'fn',
+    'ln',
+    'ct',
+    'st',
+    'country',
+    'zip',
+    'event_name',
+    'event_time',
+    'value',
+    'currency',
+    'data_processing_options'
   ]
 };
 
@@ -84,12 +102,16 @@ export const VALIDATION_MESSAGES = {
   errors: {
     missingGclid: 'Missing Google Click ID (GCLID) - required for Standard mode',
     missingEmailOrPhone: 'Missing both Email and Phone - at least one is required for EC4L mode',
+    missingEmailOrPhoneFacebook: 'Missing both Email and Phone - at least one is required for Facebook mode',
+    missingValueFacebook: 'Missing conversion value - required for Facebook',
+    missingCurrencyFacebook: 'Missing currency - required for Facebook',
     invalidDate: 'Invalid date format - could not parse',
     emptyRow: 'Empty row with no data'
   },
   warnings: {
     gclidTooOld: 'GCLID may be older than 90 days - conversion might not be attributed',
     ec4lTooOld: 'Conversion may be older than 63 days - may not be matched',
+    facebookTooOld: 'Conversion may be older than 90 days - may not be matched on Facebook',
     possibleDuplicate: 'Possible duplicate entry detected',
     missingValue: 'Missing conversion value',
     missingCurrency: 'Missing currency - default will be applied'
@@ -101,6 +123,8 @@ export const VALIDATION_MESSAGES = {
     emailHashed: 'Email normalized and hashed (SHA-256)',
     phoneHashed: 'Phone normalized and hashed (SHA-256)',
     nameHashed: 'Name normalized and hashed (SHA-256)',
+    addressHashed: 'Address fields hashed (SHA-256) for Facebook',
+    unixTimestampConverted: 'Date converted to Unix timestamp for Facebook',
     currencyFixed: 'Currency code uppercased',
     valueFixed: 'Value format corrected'
   }
@@ -120,5 +144,6 @@ export const DATE_PATTERNS = [
 // Conversion windows (in days)
 export const CONVERSION_WINDOWS = {
   standard: 90, // GCLID-based conversions
-  ec4l: 63      // Enhanced Conversions for Leads
+  ec4l: 63,     // Enhanced Conversions for Leads
+  facebook: 90  // Facebook offline conversions
 };

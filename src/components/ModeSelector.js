@@ -35,6 +35,20 @@ const ModeSelector = ({ mode, onChange }) => {
             For conversions with email/phone. Data is hashed automatically. 63-day window.
           </div>
         </button>
+
+        <button
+          onClick={() => onChange(MODES.FACEBOOK)}
+          className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+            mode === MODES.FACEBOOK
+              ? 'border-primary-500 bg-primary-50 text-primary-700'
+              : 'border-gray-200 hover:border-gray-300 text-gray-600'
+          }`}
+        >
+          <div className="font-semibold mb-1">Facebook / Meta</div>
+          <div className="text-sm opacity-75">
+            For offline conversions with email/phone. Data is hashed automatically. 90-day window.
+          </div>
+        </button>
       </div>
     </div>
   );

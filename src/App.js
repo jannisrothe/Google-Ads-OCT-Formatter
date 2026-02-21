@@ -21,6 +21,8 @@ function App() {
   // Settings
   const [settings, setSettings] = useState({
     conversionName: '',
+    eventName: '',
+    dataProcessingOptions: 'non-ldu',
     timezone: '+00:00',
     defaultCurrency: ''
   });
@@ -91,12 +93,16 @@ function App() {
         setOptimizedData(optimizationResult.data);
         setOptimizationSummary(optimizationResult.changeSummary);
         
-        // Transform to Google Ads format for export
-        if (validationResult.canExport && settings.conversionName) {
+        // Transform to export format
+        const nameValid = mode === MODES.FACEBOOK
+          ? !!(settings.eventName && settings.eventName.trim())
+          : !!(settings.conversionName && settings.conversionName.trim());
+        if (validationResult.canExport && nameValid) {
           const exportReady = transformToGoogleAdsFormat(
-            optimizationResult.data, 
-            mode, 
-            settings.conversionName
+            optimizationResult.data,
+            mode,
+            mode === MODES.FACEBOOK ? settings.eventName : settings.conversionName,
+            settings
           );
           setExportData(exportReady);
         } else {
@@ -122,7 +128,9 @@ function App() {
   };
 
   // Check if settings are valid
-  const settingsValid = settings.conversionName && settings.conversionName.trim() !== '';
+  const settingsValid = mode === MODES.FACEBOOK
+    ? !!(settings.eventName && settings.eventName.trim())
+    : !!(settings.conversionName && settings.conversionName.trim());
 
   // Get unique row indices with errors
   const errorRowIndices = validation 
@@ -162,13 +170,13 @@ function App() {
         <ModeSelector mode={mode} onChange={handleModeChange} />
 
         {/* Step 2: Settings */}
-        <SettingsPanel settings={settings} onChange={setSettings} />
+        <SettingsPanel settings={settings} onChange={setSettings} mode={mode} />
 
         {/* Settings Warning */}
         {!settingsValid && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800 text-sm">
-              Please enter a Conversion Name above before uploading your file.
+              Please enter {mode === MODES.FACEBOOK ? 'an Event Name' : 'a Conversion Name'} above before uploading your file.
             </p>
           </div>
         )}
