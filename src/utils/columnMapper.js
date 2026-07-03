@@ -34,12 +34,12 @@ const matchesAliases = (header, aliases) => {
 export const autoDetectColumns = (headers, mode) => {
   const mappings = {};
   
-  // Fields to detect based on mode (currency is handled by settings, not column mapping)
+  // Fields to detect based on mode
   const fieldsToDetect = mode === 'standard'
-    ? ['gclid', 'conversionTime', 'conversionValue']
+    ? ['gclid', 'conversionTime', 'conversionValue', 'currency']
     : mode === 'facebook'
-      ? ['email', 'phone', 'firstName', 'lastName', 'city', 'state', 'country', 'zip', 'conversionTime', 'conversionValue']
-      : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue'];
+      ? ['email', 'phone', 'firstName', 'lastName', 'city', 'state', 'country', 'zip', 'conversionTime', 'conversionValue', 'currency']
+      : ['email', 'phone', 'firstName', 'lastName', 'country', 'zip', 'conversionTime', 'conversionValue', 'currency'];
 
   fieldsToDetect.forEach(field => {
     const aliases = COLUMN_ALIASES[field];
@@ -60,12 +60,12 @@ export const autoDetectColumns = (headers, mode) => {
  * @returns {Array} - Array of field definitions with name, label, and required status
  */
 export const getFieldsForMode = (mode) => {
-  // Note: Currency is NOT included here - it's set via the Default Currency setting
   if (mode === 'standard') {
     return [
       { name: 'gclid', label: 'Google Click ID (GCLID)', required: true },
       { name: 'conversionTime', label: 'Conversion Time', required: true },
-      { name: 'conversionValue', label: 'Conversion Value', required: false }
+      { name: 'conversionValue', label: 'Conversion Value', required: false },
+      { name: 'currency', label: 'Currency', required: false, note: 'Falls back to Default Currency setting if not mapped' }
     ];
   }
 
@@ -80,7 +80,8 @@ export const getFieldsForMode = (mode) => {
       { name: 'country', label: 'Country', required: false },
       { name: 'zip', label: 'Zip/Postal Code', required: false },
       { name: 'conversionTime', label: 'Event Time', required: true },
-      { name: 'conversionValue', label: 'Value (required for Facebook)', required: true }
+      { name: 'conversionValue', label: 'Value (required for Facebook)', required: true },
+      { name: 'currency', label: 'Currency', required: false, note: 'Falls back to Default Currency setting if not mapped' }
     ];
   }
 
@@ -92,7 +93,8 @@ export const getFieldsForMode = (mode) => {
     { name: 'country', label: 'Country', required: false },
     { name: 'zip', label: 'Zip/Postal Code', required: false },
     { name: 'conversionTime', label: 'Conversion Time', required: true },
-    { name: 'conversionValue', label: 'Conversion Value', required: false }
+    { name: 'conversionValue', label: 'Conversion Value', required: false },
+    { name: 'currency', label: 'Currency', required: false, note: 'Falls back to Default Currency setting if not mapped' }
   ];
 };
 
