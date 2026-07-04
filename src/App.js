@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import './App.css';
 
 import { MODES } from './utils/constants';
@@ -133,9 +133,11 @@ function App() {
     : !!(settings.conversionName && settings.conversionName.trim());
 
   // Get unique row indices with errors
-  const errorRowIndices = validation 
-    ? [...new Set(validation.issues.filter(i => i.type === 'error').map(i => i.rowIndex))]
-    : [];
+  const errorRowIndices = useMemo(() => (
+    validation
+      ? [...new Set(validation.issues.filter(i => i.type === 'error').map(i => i.rowIndex))]
+      : []
+  ), [validation]);
 
   // Handler to remove rows with errors
   const handleRemoveErrorRows = useCallback(() => {
