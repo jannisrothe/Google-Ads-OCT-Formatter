@@ -91,7 +91,7 @@ export const validateRow = (row, mode, settings) => {
       const valueIssue = validateValue(String(row.conversionValue), rowIndex);
       if (valueIssue) issues.push(valueIssue);
     }
-    if (!row.currency && !settings.defaultCurrency) {
+    if (!settings.defaultCurrency) {
       issues.push({
         type: 'error',
         message: VALIDATION_MESSAGES.errors.missingCurrencyFacebook,
@@ -112,7 +112,7 @@ export const validateRow = (row, mode, settings) => {
         field: 'conversionValue'
       });
     }
-    if (hasValue && !row.currency && !settings.defaultCurrency) {
+    if (hasValue && !settings.defaultCurrency) {
       issues.push({
         type: 'warning',
         message: VALIDATION_MESSAGES.warnings.missingCurrency,

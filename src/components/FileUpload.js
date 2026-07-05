@@ -8,25 +8,25 @@ const FILE_SIZE_LIMITS = {
 };
 const ROW_LIMIT = 50000;
 
-// Supported file extensions
-const supportedExtensions = ['.csv', '.xls', '.xlsx', '.xlsm', '.xlsb'];
-const excelExtensions = ['.xls', '.xlsx', '.xlsm', '.xlsb'];
-
-const isValidFile = (filename) => {
-  const ext = filename.toLowerCase();
-  return supportedExtensions.some(e => ext.endsWith(e));
-};
-
-const isExcelFile = (filename) => {
-  const ext = filename.toLowerCase();
-  return excelExtensions.some(e => ext.endsWith(e));
-};
-
 const FileUpload = ({ onFileLoaded, disabled }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [warning, setWarning] = useState(null);
+
+  // Supported file extensions
+  const supportedExtensions = ['.csv', '.xls', '.xlsx', '.xlsm', '.xlsb'];
+  const excelExtensions = ['.xls', '.xlsx', '.xlsm', '.xlsb'];
+
+  const isValidFile = (filename) => {
+    const ext = filename.toLowerCase();
+    return supportedExtensions.some(e => ext.endsWith(e));
+  };
+
+  const isExcelFile = (filename) => {
+    const ext = filename.toLowerCase();
+    return excelExtensions.some(e => ext.endsWith(e));
+  };
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;

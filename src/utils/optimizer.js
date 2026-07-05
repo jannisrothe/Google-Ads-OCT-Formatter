@@ -1,5 +1,5 @@
-import { format, isValid, isToday } from 'date-fns';
-import { MODES, VALIDATION_MESSAGES } from './constants';
+import { format, parseISO, isValid, isToday } from 'date-fns';
+import { MODES, VALIDATION_MESSAGES, GOOGLE_ADS_COLUMNS } from './constants';
 import { hashField, isAlreadyHashed } from './hasher';
 import { tryParseDate } from './validator';
 
@@ -198,10 +198,9 @@ export const optimizeRow = async (row, mode, settings) => {
     optimized.conversionValue = '';
   }
 
-  // Use the mapped row currency if present, otherwise fall back to the Default Currency setting
-  const currencyResult = optimizeCurrency(row.currency, settings.defaultCurrency);
-  optimized.currency = currencyResult.value;
-  allChanges.push(...currencyResult.changes);
+  // Set currency from settings (currency is not mapped from columns)
+  // Always use the default currency from settings
+  optimized.currency = settings.defaultCurrency ? settings.defaultCurrency.toUpperCase() : '';
 
   // EC4L specific: hash PII fields
   if (mode === MODES.EC4L) {
