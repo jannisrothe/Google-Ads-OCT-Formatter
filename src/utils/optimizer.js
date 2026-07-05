@@ -198,9 +198,12 @@ export const optimizeRow = async (row, mode, settings) => {
     optimized.conversionValue = '';
   }
 
-  // Set currency from settings (currency is not mapped from columns)
-  // Always use the default currency from settings
-  optimized.currency = settings.defaultCurrency ? settings.defaultCurrency.toUpperCase() : '';
+  // Set currency: use mapped currency from row if available, otherwise fall back to default
+  if (row.currency && row.currency.trim() !== '') {
+    optimized.currency = row.currency.trim().toUpperCase();
+  } else {
+    optimized.currency = settings.defaultCurrency ? settings.defaultCurrency.toUpperCase() : '';
+  }
 
   // EC4L specific: hash PII fields
   if (mode === MODES.EC4L) {
